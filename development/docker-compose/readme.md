@@ -30,16 +30,16 @@ For the setup, you must have the following:
 
 ### Initial set up
 
-1. Install your preferred Docker engine to work with Docker Compose, in this documentation we'll use [Colima](https://github.com/abiosoft/colima):
+1. Install Colima to run Docker and work with Docker Compose:
     ```shell
     brew install colima docker docker-compose docker-credential-helper
     colima start --cpu 4 --memory 16
     ```
-   If you are using Apple Silicon (Macbook M1, M2, M3, etc), we recommend enabling Rosetta for best compatibility - Requires v0.5.3 and MacOS >= 13 (Ventura):
+   Workaround to fix Colima issue [#764](https://github.com/abiosoft/colima/issues/764) in order to build the Identity Auth Server image using docker compose:
    ```shell
-    colima start --cpu 4 --memory 16 --vm-type=vz --vz-rosetta --mount-type virtiofs
+    docker buildx create --driver-opt 'image=moby/buildkit:rootless' 
     ```
-   > **NOTE**: Colima is only available for **macOS**. For Windows-based systems, you can install [Docker Desktop](https://www.docker.com/products/docker-desktop/) and run it to start the Docker service before going to the next step.
+   > **NOTE**: Installing Colima is only for macOS. For Windows-based systems, you can install Docker Desktop and run it to start the Docker service before going to the next step.
 2. Log in to the Backbase repo:
     ```shell
     docker login repo.backbase.com
@@ -51,9 +51,9 @@ For the setup, you must have the following:
     ```shell
     docker ps
     ```
-2. To set the Docker image for the version of Edge you are running, replace `2024.10` with the value of `BB_VERSION` in the [development/docker-compose/.env](https://github.com/backbase/local-backend-setup/blob/main/development/docker-compose/.env) file.:
+2. To set the Docker image for the version of Edge you are running, replace `2022.09.1` with the value of `BB_VERSION` in the [development/docker-compose/.env](https://github.com/backbase/local-backend-setup/blob/main/development/docker-compose/.env) file.:
     ```shell
-    docker pull repo.backbase.com/backbase-docker-releases/edge:`2024.10`
+    docker pull repo.backbase.com/backbase-docker-releases/edge:`2022.09.1`
     ```
 
 3. From the Docker Compose directory, start up the environment:
@@ -62,45 +62,44 @@ For the setup, you must have the following:
     ```
    > **NOTE**: The Postman health check and Newman runs on `docker compose up`. For more information, see [Health check](#health-check).
 
-4. Add the `bootstrap` profile on the first run to **ingest data** into Banking Services:
+4. Add the `bootstrap` profile on the first run to ingest data into Banking Services:
     ```shell
     docker compose --profile=bootstrap up -d
     ```
-   > **NOTE**: [Products](../images/bootstrap/doc/products.json) and [LegalEntity](../images/bootstrap/doc/LegalEntity.json) which are located inside the bootstrap-job are ingested by default. In case you need to ingest a custom data, please refer to [here](./data/README.md).  
-5. To monitor the application status with prometheus data represented in grafana, add the `observable` profile while running docker compose:
+    ```shell
+   docker compose --profile=transactions up -d
+    ```
+    ```shell
+   docker compose --profile=foundation-optional up -d
+    ```
+5. Add the `observable` profile to monitor the application status with prometheus data represented  in grafana:
     ```shell
     docker compose --profile=observable up -d
     ```
-6. Add the `tracing-tools` profile to enable tracing logs:
-    ```shell
-    docker compose --profile=tracing-tools up -d
-    ```
-   > **NOTE**:
-   To enable tracing, set `management.tracing.enabled` in the [docker-compose](https://github.com/backbase/local-backend-setup/blob/main/development/docker-compose/docker-compose.yaml) file. Moreover, any new service added to environment must configure the property  `spring.application.name: "<SERVICE-NAME>"`.
-7. To display the log output for all services specified in the `docker-compose.yaml` file and continuously update the console with new log entries:
+6. To display the log output for all services specified in the `docker-compose.yaml` file and continuously update the console with new log entries:
     ```shell
     docker compose logs -f
     ```
-8. To access your environment, use the following endpoints:
+7. To access your environment, use the following endpoints:
     - **Identity**: http://localhost:8180/auth
         * **Realm Admin Credentials**: `admin` / `admin`
     - **Edge Gateway**: http://localhost:8280/api
     - **Registry**: http://localhost:8761
-9. Verify the health of your environment to ensure services are running:
+8. Verify the health of your environment to ensure services are running:
     ```shell
     docker compose ps
     ```
    For a more detailed check of your environment, use the Postman collection from the `./test` directory. For more information, see [Health check](#health-check).
 
-10. If you want to stop or kill containers, use one of the following:
-     - Stop and remove containers in the Docker Compose file:
-         ```shell
-         docker compose down
-         ```
-     - Kill all running containers in the host:
-         ```shell
-         docker kill $(docker ps -q)
-         ```
+9. If you want to stop or kill containers, use one of the following:
+    - Stop and remove containers in the Docker Compose file:
+        ```shell
+        docker compose down
+        ```
+    - Kill all running containers in the host:
+        ```shell
+        docker kill $(docker ps -q)
+        ```
 
 ### Add services
 
@@ -144,11 +143,20 @@ The following is an example configuration:
       - ./scripts/HealthCheck.jar:/tmp/HealthCheck.jar
     healthcheck:
       <<: *healthcheck-defaults
-      test: [ "CMD", "java", "-jar", "/tmp/HealthCheck.jar", "http://localhost:8080/actuator/serviceregistry" ]
+      test: [ "CMD", "java", "-jar", "/tmp/HealthCheck.jar", "http://registry:8080/eureka/apps/<SERVICE-NAME>", "<status>UP</status>" ]
     links:
       - registry
 ```
-## Platform Health check
+
+### Ingest data
+
+The following tasks ingest data:
+- Product catalog task
+- Legal entity bootstrap task
+
+  > **NOTE**: For demonstration purposes, the `moustache-bank` and `moustache-bank-subsidiaries` profiles are [enabled and pre-configured](https://github.com/Backbase/stream-services/blob/master/stream-legal-entity/legal-entity-bootstrap-task/src/main/resources/application.yml#L24) in the Stream services.
+
+## Health check
 In addition to the default health check that is provided when you use `docker compose up`, the following steps describe how to perform a more comprehensive health check on your environment using Postman:
 
 1. Import the Postman collection from the `./test` directory.
@@ -177,26 +185,15 @@ You can debug your custom application in the local environment by either running
 
 ### Run the application locally
 
-To connect your application to the local environment, you can run it in the IDE and configure it to use services such as MySQL, ActiveMQ, Token Converter, and Registry. Do this by adding JVM options to the run configuration, or by editing the `application.properties` file.
+To connect your application to the local environment, you can run it in the IDE and configure it to use services such as MySQL, ActiveMQ, Token Converter, and Registry. Do this by adding JVM options to the run configuration, or by editing the `application.yaml` file.
 
 The following is an example configuration:
-```properties
-eureka.client.enabled=true
-eureka.client.order=1
-eureka.client.serviceUrl.defaultZone=http://localhost:8761/eureka/
-eureka.instance.hostname=host.docker.internal
-spring.cloud.discovery.client.simple.order=0
-spring.cloud.discovery.client.simple.instances.token-converter.uri=http://localhost:7779
-spring.cloud.discovery.client.simple.instances.access-control.uri=http://localhost:8040
-spring.activemq.broker-url=tcp://localhost:61616
-spring.activemq.password=admin
-spring.activemq.user=admin
-spring.datasource.url=jdbc:mysql://localhost:3306/custom-service?useSSL=false&allowPublicKeyRetrieval=true&cacheServerConfiguration=true&createDatabaseIfNotExist=true
-spring.datasource.password=root
-spring.datasource.username=root
-spring.jpa.database-platform=org.hibernate.dialect.MySQLDialect
-sso.jwt.internal.signature.key.type=VALUE
-sso.jwt.internal.signature.key.value=JWTSecretKeyDontUseInProduction!
+```
+-Deureka.client.serviceUrl.defaultZone=http://localhost:8761/eureka/
+-Dbackbase.communication.http.discoverable-access-token-service=false
+-Dbackbase.communication.http.access-token-uri=http://localhost:7779/oauth/token
+-Dspring.activemq.broker-url=tcp://localhost:61616
+-Deureka.instance.hostname=host.docker.internal
 ```
 To start an application in debug mode using, for example, IntelliJ IDE, do the following:
 
@@ -235,7 +232,7 @@ To debug your Docker image remotely inside the local environment, do the followi
           - ./scripts/HealthCheck.jar:/tmp/HealthCheck.jar
         healthcheck:
           <<: *healthcheck-defaults
-          test: [ "CMD", "java", "-jar", "/tmp/HealthCheck.jar", "http://localhost:8080/actuator/serviceregistry" ]
+          test: [ "CMD", "java", "-jar", "/tmp/HealthCheck.jar", "http://registry:8080/eureka/apps/example-service", "<status>UP</status>" ]
         links:
           - registry
     ```
@@ -266,16 +263,6 @@ If the environment is not working, or if some or all of its services are not in 
 - Check the Registry service in the browser [http://localhost:8761](http://localhost:8761).
 - Check the Edge routes [http://localhost:8280/actuator/gateway/routes](http://localhost:8280/actuator/gateway/routes).
 - If the health check task fails and you are operating in a new environment, ensure that you include `--profile=bootstrap` in your command.
-
-### Maven settings
-- To create a standard maven setting, please follow the instruction from [here](https://backbase.io/documentation/backend-devkit/18.0.1/getting-started/configure-maven).
-- If the credentials in `settings.xml` are encrypted by maven, it won't work. Hence, it has to be created with non-maven-encripted password
-- Mounting maven settings on windows might be slightly different. Hence, you may need to align the docker-compose [file](docker-compose.yaml) in case of windows:
-```shell
-secrets:
-  mvnrepo:
-    file: ${HOME}/.m2/settings.xml # change here
-```
 
 ### Colima
 - If you encounter an error when running `docker compose up` in Colima, this may be caused by a problem with mounts in Docker.

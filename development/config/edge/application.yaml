@@ -1,0 +1,31 @@
+spring:
+  cloud:
+    gateway:
+      globalcors:
+        corsConfigurations:
+          '[/**]':
+            allowedOrigins:
+            - http://localhost:4200
+            - http://localhost:4201
+            - http://localhost:4202
+            - http://localhost:4300
+            - https://bb-web.hn.smartosc.com
+            - http://192.90.50.102:4200
+            - http://192.90.50.230:31000
+            - http://192.168.20.201:4200
+            - http://127.0.0.1:4200
+            - http://127.0.0.1:4300
+            - http://localhost:8088
+            - http://192.90.50.102:8088
+            - http://bb-retail-dev.hn.smartosc.com
+            - http://bb-remote-config.hn.smartosc.local
+            allowedHeaders: "*"
+            allowCredentials: true
+            exposedHeaders: WWW-Authenticate
+            allowedMethods:
+            - GET
+            - POST
+            - OPTIONS
+            - PUT
+            - PATCH
+            - DELETE

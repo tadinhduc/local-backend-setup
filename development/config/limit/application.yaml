@@ -1,0 +1,78 @@
+backbase:
+  limits:
+    applicableCurrency:
+      currencyList: [ EUR, USD, AED ]
+    limit-types:
+      - types:
+          - USER
+        alias: Personal Limit
+        supportShadow: true
+      - types:
+          - USER
+          - SA
+        alias: User Service Agreement Limit
+        supportShadow: true
+      - types:
+          - LE
+        alias: Legal Entity Limit
+        supportShadow: true
+      - types:
+          - LE
+          - SA
+        alias: Legal Entity Service Agreement Limit
+        supportShadow: true
+      - types:
+          - SA
+        alias: Service Agreement Limit
+        supportShadow: true
+      - types:
+          - FAG
+          - FUN
+          - PRV
+          - SA
+        alias: Common Job Profile Limit
+        supportShadow: true
+      - types:
+          - FAG
+          - FUN
+          - PRV
+          - SA
+          - USER
+        alias: User Job Profile Limit
+        supportShadow: true
+      - types:
+          - LE
+          - FUN
+          - PRV
+        alias: Legal Entity Payment Type Limit
+        supportShadow: true
+      - types:
+          - SA
+          - FUN
+          - PRV
+        alias: Service Agreement Payment Type Limit
+        supportShadow: true
+      - types:
+          - USER
+          - FUN
+          - PRV
+        alias: Personal Payment Type Limit
+        supportShadow: true
+      - types:
+          - SA
+          - LE
+          - FUN
+          - PRV
+        alias: Payment Type Agreement Participant Limit
+        supportShadow: true
+      - types:
+          - FAG
+          - FUN
+          - PRV
+        alias: Job profile Limit
+        supportShadow: true
+
+    skip-intra-company:
+      enabled: false
+  access-control:
+    enabled: true

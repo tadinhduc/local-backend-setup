@@ -1,0 +1,37 @@
+backbase:
+  users:
+    identity-endpoints-enabled: true
+    identity-integration-enabled: true
+    search-by-full-name-enabled: true
+    attribute-whitelist:
+      - customerId
+      - mobileNumber
+      - identityNumber
+      - cif
+  api:
+    extensions:
+      classes:
+        com.backbase.dbs.user.manager.models.v2.User: extra-info-data
+        com.backbase.dbs.user.manager.models.v2.UserExternal: extra-info-data
+        com.backbase.dbs.user.manager.models.v2.GetIdentity: extra-info-data
+        com.backbase.dbs.user.manager.models.v2.UpdateIdentityRequest: extra-info-data
+        com.backbase.dbs.user.manager.models.v2.CreateIdentityRequest: extra-info-data
+        com.backbase.dbs.user.manager.domain.UserEntity: extra-info-data
+        com.backbase.dbs.user.manager.models.v2.ReplaceUserProfileAttributes*: extra-info-data
+        com.backbase.dbs.user.manager.models.v2.GetOwnUser: extra-info-data
+        com.backbase.dbs.user.manager.models.v2.GetUser: extra-info-data
+        com.backbase.dbs.user.manager.models.v2.BatchUser: extra-info-data
+        com.backbase.dbs.user.manager.models.v2.BatchResponseItem: extra-info-data
+        com.backbase.dbs.user.manager.models.v2.IngestionBatchUser: extra-info-data
+      property-sets:
+        extra-info-data:
+          properties:
+            - property-name: identityNumber
+              type: string
+            - property-name: cif
+              type: string
+  communication:
+    services:
+      user:
+        profile:
+          service-id: "user-outbound-integration-service"

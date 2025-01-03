@@ -1,0 +1,71 @@
+backbase:
+  pfm.common.base-currency: "VND"
+  enrichment:
+    enabled: false
+  security:
+    mtls:
+      enabled: false
+    public:
+      paths: "/integration-api/**"
+  transaction:
+    domain:
+      typeGroups: Payment, Withdrawal, Loans, Fees
+      types: ATM, ACH, Bill Payment, Cash, Cheques, Credit/Debit Card, Check, Deposit, Fee, POS, Withdrawal, Repayment, Accrual, Disbursement, Interest posting
+    enrichment:
+      enabled: false
+    refresh:
+      triggers:
+        payment:
+          enabled: true
+  transactions:
+    csv:
+      export:
+        dateFormat: "MM-dd-yyyy"
+        fields: "BBAN,name,counterPartyAccountNumber,counterPartyName,currency,amount,creditDebitIndicator,bookingDate,type,typeGroup,reference,instructedCurrency,currencyExchangeRate,instructedAmount,description,category,checkSerialNumber"
+        headers: "Account number(BBAN),Account name,Counter party account number,Counter party name,Currency,Amount,Credit/debit indicator,Book date,Transaction type,Transaction group,Transaction reference,Instructed currency,currency exchange rate,Instructed amount,Description,Category,Check number"
+  communication:
+    services:
+      dbs:
+        account:
+          presentation:
+            service-id: arrangement-manager
+      integration:
+        transaction:
+          external:
+            pull:
+              service-id: transaction-integration-pull-service
+  api:
+    extensions:
+      classes:
+        com.backbase.integration.transaction.external.rest.spec.v2.transactions.TransactionsPostRequestBody: additional-data
+        com.backbase.presentation.transaction.rest.spec.v2.transactions.TransactionsPostRequestBody: additional-data
+        com.backbase.transaction.persistence.rest.spec.v2.transactions.TransactionsPostRequestBody: additional-data
+        com.backbase.presentation.transaction.rest.spec.v2.transactions.TransactionsPatchRequestBody: additional-data
+        com.backbase.transaction.persistence.rest.spec.v2.transactions.TransactionsPatchRequestBody: additional-data
+      property-sets:
+        additional-data:
+          properties:
+            - property-name: isTransactionAudited
+              type: string
+            - property-name: transId
+              type: string
+            - property-name: maturityDate
+              type: string
+            - property-name: numberDate
+              type: string
+            - property-name: interestRate
+              type: string
+            - property-name: interestAmount
+              type: string
+            - property-name: totalAmount
+              type: string
+            - property-name: cardMasked
+              type: string
+            - property-name: billingAmount
+              type: string
+            - property-name: transType
+              type: string
+            - property-name: transCode
+              type: string
+            - property-name: coreTransType
+              type: string

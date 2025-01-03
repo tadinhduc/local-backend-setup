@@ -1,0 +1,223 @@
+backbase:
+  arrangement:
+    arrangement-views:
+      views:
+        account-overview:
+          balanceAggregations:
+            total-balance:
+              cat-current-account-vnd: availableBalance
+              cat-current-account-non-vnd: availableBalance
+          limit: 30
+          includeLiveDetail: true
+          retrieveLiveData: BEFORE
+          categorizers:
+            cat-current-account-vnd:
+              expressions:
+                - productKind.uri == 'current-account'
+                - currency == 'VND'
+            cat-current-account-non-vnd:
+              expressions:
+                - productKind.uri == 'current-account'
+                - currency != 'VND'
+            ignore-debit-posting-restrict:
+              expressions:
+                - productKind.uri == 'current-account'
+                - currency == 'VND'
+          groups:
+            current-account-vnd:
+              limit: 30
+              categories:
+                - cat-current-account-vnd
+              mappings:
+                bankAlias: bankAlias
+                displayName: displayName
+                accountHolderName: accountHolderName
+                bban: bban
+                accountOpeningDate: accountOpeningDate
+                availableBalance: availableBalance
+                bookedBalance: bookedBalance
+                usableBalance: additions.usableBalance
+                lockedAmount: additions.lockedAmount
+                currency: currency
+                bankBranchCode: bankBranchCode
+                isDefault: additions.isDefault
+                accountCategory: additions.accountCategory
+                postingRestrict: additions.postingRestrict
+                cifJoinHolder: additions.cifJoinHolder
+              sort-by:
+                - additions.bbanLength
+                - accountOpeningDate
+            originator-account-vnd:
+              limit: 30
+              categories:
+                - ignore-debit-posting-restrict
+              mappings:
+                bankAlias: bankAlias
+                displayName: displayName
+                accountHolderName: accountHolderName
+                bban: bban
+                accountOpeningDate: accountOpeningDate
+                availableBalance: availableBalance
+                bookedBalance: bookedBalance
+                usableBalance: additions.usableBalance
+                lockedAmount: additions.lockedAmount
+                currency: currency
+                bankBranchCode: bankBranchCode
+                isDefault: additions.isDefault
+                accountCategory: additions.accountCategory
+                postingRestrict: additions.postingRestrict
+                cifJoinHolder: additions.cifJoinHolder
+              sort-by:
+                - -isDefault
+                - -availableBalance
+                - additions.bbanLength
+                - accountOpeningDate
+            current-account-non-vnd:
+              limit: 30
+              categories:
+                - cat-current-account-non-vnd
+              mappings:
+                bankAlias: bankAlias
+                displayName: displayName
+                accountHolderName: accountHolderName
+                bban: bban
+                accountOpeningDate: accountOpeningDate
+                availableBalance: availableBalance
+                bookedBalance: bookedBalance
+                usableBalance: additions.usableBalance
+                lockedAmount: additions.lockedAmount
+                currency: currency
+                bankBranchCode: bankBranchCode
+                isDefault: additions.isDefault
+                accountCategory: additions.accountCategory
+                postingRestrict: additions.postingRestrict
+                cifJoinHolder: additions.cifJoinHolder
+              sort-by:
+                - additions.currencyPriority
+                - additions.bbanLength
+                - accountOpeningDate
+    masking:
+      use-mask-indicator: false
+    product-kinds:
+      use-db: true
+      kinds:
+        # Current Account
+        kind1:
+          unmaskable-attributes:
+            - IBAN
+            - BBAN
+            - number
+        # Debit Card
+        kind3:
+          maskable-attributes:
+            - IBAN
+            - BBAN
+            - number
+        # Credit Card
+        kind4:
+          maskable-attributes:
+            - IBAN
+            - BBAN
+            - number
+        # Loan
+        kind5:
+          maskable-attributes:
+            - IBAN
+            - BBAN
+            - number
+          unmaskable-attributes:
+            - IBAN
+            - BBAN
+            - number
+        # Term Deposit
+        kind6:
+          maskable-attributes:
+            - IBAN
+            - BBAN
+            - number
+          unmaskable-attributes:
+            - IBAN
+            - BBAN
+            - number
+        # Investment Account
+        kind7:
+          maskable-attributes:
+            - IBAN
+            - BBAN
+            - number
+          unmaskable-attributes:
+            - IBAN
+            - BBAN
+            - number
+#    pull-latest-balance: false
+    fetch-debit-cards-details: true
+    balance-update-slice: 50
+    forbidden-on-empty: false
+  security:
+    mtls:
+      enabled: false
+    public:
+      paths: "/integration-api/**"
+  communication:
+    services:
+      account:
+        integration:
+          service-id: account-integration-service
+  api:
+    extensions:
+      classes:
+        com.backbase.presentation.account.rest.spec.v2.arrangements.ArrangementsPostRequestBody: extra-info-data
+        com.backbase.products.api.client.v2.model.AccountArrangementItemPost: extra-info-data
+        com.backbase.dbs.arrangement.service.model.AccountArrangementItemPostDto: extra-info-data
+        com.backbase.dbs.product.arrangement.BatchArrangementsCommand: extra-info-data
+        com.backbase.products.api.client.v2.model.AccountArrangementPutItem: extra-info-data
+        com.backbase.dbs.arrangement.service.model.AccountArrangementPutItemDto: extra-info-data
+      property-sets:
+        extra-info-data:
+          properties:
+            - property-name: jointHolder
+              type: string
+            - property-name: jointHolderName
+              type: string
+            - property-name: renewalMethod
+              type: string
+            - property-name: paidAmount
+              type: string
+            - property-name: dueDate
+              type: string
+            - property-name: outstandingAmount
+              type: string
+            - property-name: startDate
+              type: string
+            - property-name: maturityDate
+              type: string
+            - property-name: maturityMethod
+              type: string
+            - property-name: name
+              type: string
+            - property-name: identification
+              type: string
+            - property-name: accountHolderNames
+              type: string
+            - property-name: isDefault
+              type: string
+            - property-name: postingRestrict
+              type: string
+            - property-name: accountCategory
+              type: string
+            - property-name: isHavingJoinHolder
+              type: string
+            - property-name: renewalMethod
+              type: string
+            - property-name: cifJoinHolder
+              type: string
+            - property-name: sortOrder
+              type: string
+            - property-name: bbanLength
+              type: string
+            - property-name: currencyPriority
+              type: string
+            - property-name: usableBalance
+              type: string
+            - property-name: lockedAmount
+              type: string

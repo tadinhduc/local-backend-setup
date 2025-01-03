@@ -12,11 +12,6 @@ bootstrap:
         typeName: "Savings Accounts"
         externalProductKindId: "kind2"
         externalProductId: "savings-account"
-      - productKindName: "Loan"
-        productTypeName: "loans-account"
-        typeName: "Loans Accounts"
-        externalProductKindId: "kind5"
-        externalProductId: "loans-account"
   # Used by legal-entity-bootstrap-task
   legalEntity:
     name: "Moustache Bank"
@@ -121,49 +116,12 @@ bootstrap:
                 privileges:
                   - privilege: "view"
                   - privilege: "edit"
-          - name: "Transfer and Payments"
-            functions:
-              - functionId: "1053"
-                name: "A2A Transfer"
-                functionCode: "a2a.transfer"
+              - functionId: "1003"
+                name: "Transactions"
+                functionCode: "transactions"
                 privileges:
                   - privilege: "view"
                   - privilege: "edit"
-                  - privilege: "create"
-              - functionId: "1021"
-                name: "US Billpay Payments"
-                functionCode: "us.billpay.payments"
-                privileges:
-                  - privilege: "view"
-                  - privilege: "edit"
-                  - privilege: "create"
-              - functionId: "1071"
-                name: "Payment Templates"
-                functionCode: "payment.templates"
-                privileges:
-                  - privilege: "view"
-                  - privilege: "edit"
-                  - privilege: "create"
-      - name: "Retail User Vip"
-        description: "Retail User Vip Permissions"
-        functionGroups:
-          - name: "Domestic and Foreign"
-            functions:
-              - functionId: "1017"
-                name: "US Domestic Wire"
-                functionCode: "us.domestic.wire"
-                privileges:
-                  - privilege: "view"
-                  - privilege: "edit"
-                  - privilege: "create"
-              - functionId: "1018"
-                name: "US Foreign Wire"
-                functionCode: "us.foreign.wire"
-                privileges:
-                  - privilege: "view"
-                  - privilege: "edit"
-                  - privilege: "create"
-
     users:
       - user:
           externalId: "admin"
@@ -207,7 +165,6 @@ bootstrap:
                         number: "1234567890"
                     referenceJobRoleNames:
                       - "Retail User"
-                      - "Retail User Vip"
                 description: "Product group containing user arrangements"
                 currentAccounts:
                   - externalId: "021000021"
@@ -222,6 +179,30 @@ bootstrap:
                     bookedBalance:
                       currencyCode: "USD"
                       amount: "1055.5"
+                  - externalId: "66666666"
+                    BBAN: "66666666"
+                    name: "Sara's Current Account 2"
+                    productTypeExternalId: "current-account"
+                    currency: "USD"
+                    externalTransferAllowed: "true"
+                    availableBalance:
+                      currencyCode: "USD"
+                      amount: "10000.5"
+                    bookedBalance:
+                      currencyCode: "USD"
+                      amount: "10000.5"
+                  - externalId: "88888888"
+                    BBAN: "88888888"
+                    name: "Sara's Current Account 3"
+                    productTypeExternalId: "current-account"
+                    currency: "USD"
+                    externalTransferAllowed: "true"
+                    availableBalance:
+                      currencyCode: "USD"
+                      amount: "20000.5"
+                    bookedBalance:
+                      currencyCode: "USD"
+                      amount: "20000.5"
                 savingAccounts:
                   - externalId: "021000022"
                     BBAN: "021000022"
@@ -251,76 +232,3 @@ bootstrap:
                       amount: "155.5"
                     accountInterestRate: "0.05"
                     termUnit: "Quarterly"
-                  - externalId: "021000024"
-                    BBAN: "021000022"
-                    name: "Sara's Loans Account 1"
-                    productTypeExternalId: "loans-account"
-                    currency: "USD"
-                    externalTransferAllowed: "false"
-                    availableBalance:
-                      currencyCode: "USD"
-                      amount: "3820.2"
-                    bookedBalance:
-                      currencyCode: "USD"
-                      amount: "3820.2"
-                    accountInterestRate: "0.05"
-                    termUnit: "Quarterly"
-                  - externalId: "021000023"
-                    BBAN: "021000023"
-                    name: "Sara's Savings Account 2"
-                    productTypeExternalId: "loans-account"
-                    currency: "USD"
-                    externalTransferAllowed: "false"
-                    availableBalance:
-                      currencyCode: "USD"
-                      amount: "155.5"
-                    bookedBalance:
-                      currencyCode: "USD"
-                      amount: "155.5"
-                    accountInterestRate: "0.05"
-                    termUnit: "Quarterly"
-      - name: "Moustache Bank VietNam"
-        realmName: "backbase"
-        externalId: "moustache-bank-vn"
-        legalEntityType: "BANK"
-        subsidiaries:
-          - name: "user1"
-            realmName: "backbase"
-            externalId: "user1"
-            legalEntityType: "CUSTOMER"
-            users:
-              - user:
-                  externalId: "user1"
-                  fullName: "Sara Jones"
-                  identityLinkStrategy: "CREATE_IN_IDENTITY"
-                  emailAddress:
-                    address: "user1@email.com"
-                  mobileNumber:
-                    number: "1234567890"
-            productGroups:
-              - name: "user1-arrangements"
-                users:
-                  - user:
-                      externalId: "user1"
-                      fullName: "Sara Jones"
-                      identityLinkStrategy: "CREATE_IN_IDENTITY"
-                      emailAddress:
-                        address: "user1@email.com"
-                      mobileNumber:
-                        number: "1234567890"
-                    referenceJobRoleNames:
-                      - "Retail User"
-                description: "Product group containing user1's arrangements"
-                currentAccounts:
-                  - externalId: "55555"
-                    BBAN: "55555"
-                    name: "user1's Current Account 1"
-                    productTypeExternalId: "current-account"
-                    currency: "USD"
-                    externalTransferAllowed: "true"
-                    availableBalance:
-                      currencyCode: "USD"
-                      amount: "1055.5"
-                    bookedBalance:
-                      currencyCode: "USD"
-                      amount: "1055.5"

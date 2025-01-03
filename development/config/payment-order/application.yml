@@ -1,0 +1,275 @@
+---
+### Live profile
+spring:
+  profiles:
+    active: live
+  datasource:
+    driver-class-name: ${spring.datasource.driver-class-name}
+    username: ${spring.datasource.username.payment-order-service}
+    password: ${spring.datasource.password.payment-order-service}
+    url: ${spring.datasource.url.payment-order-service}
+
+backbase:
+  audit:
+    enabled: false
+  communication:
+    services:
+      dbs:
+        integration:
+          external:
+            outbound:
+              paymentorder:
+                serviceId: payment-order-integration-service
+  payments:
+    rules:
+      min-cardless-withdraw-amount:
+        type: SpEL-field
+        attribute: transferTransactionInformation?.instructedAmount?.amount ge 50000
+        when:
+          - pre-enrich
+        configuration:
+          message: "instructedAmount must be greater or equal to 50000"
+      max-cardless-withdraw-amount:
+        type: SpEL-field
+        attribute: transferTransactionInformation?.instructedAmount?.amount le 5000000
+        when:
+          - pre-enrich
+        configuration:
+          message: "instructedAmount must be less or equal to 5000000"
+      amount-less-than-available-balance:
+        type: SpEL-field
+        spelRoot: extended
+        attribute: originatorArrangement.availableBalance ge identifiedPaymentOrder.transferTransactionInformation?.instructedAmount?.amount
+        when:
+          - post-enrich
+    confirmation:
+      idp-issuer: "http://localhost:8180/auth/realms/backbase"
+      #idp-issuer: "https://bb-identity.hn.smartosc.com/auth/realms/backbase"
+    limits:
+      enabled: false
+    types:
+      INTERNAL_TRANSFER:
+        business-function: A2A Transfer
+        confirmation.enabled: true
+        validation:
+          rules:
+            - has-counterparty
+            - non-zero-transaction
+            - amount-less-than-available-balance
+      INTRABANK_TRANSFER:
+        business-function: A2A Transfer
+        confirmation.enabled: true
+        validation:
+          rules:
+            - non-zero-transaction
+            - amount-less-than-available-balance
+      A2A_EXTERNAL_NAPAS:
+        business-function: External Napas Transfer
+        confirmation.enabled: true
+        validation:
+          rules:
+            - has-counterparty
+            - non-zero-transaction
+            - amount-less-than-available-balance
+      CITAD_TRANSFER:
+        business-function: External Citad Transfer
+        confirmation.enabled: true
+        validation:
+          rules:
+            - has-counterparty
+            - non-zero-transaction
+            - amount-less-than-available-balance
+      BILL_ELECTRICITY:
+        business-function: VN Billpay Payments
+        confirmation.enabled: true
+        validation:
+          rules:
+            - non-zero-transaction
+            - amount-less-than-available-balance
+      MOBILE_INTERNAL:
+        business-function: Mobile Internal Transfer
+        confirmation.enabled: true
+        validation:
+          rules:
+            - non-zero-transaction
+            - amount-less-than-available-balance
+      BILL_WATER:
+        business-function: VN Billpay Payments
+        confirmation.enabled: true
+        validation:
+          rules:
+            - non-zero-transaction
+            - amount-less-than-available-balance
+      BILL_POSTPAID_MOBILE:
+        business-function: VN Billpay Payments
+        confirmation.enabled: true
+        validation:
+          rules:
+            - non-zero-transaction
+            - amount-less-than-available-balance
+      PREPAID_MOBILE_TOP_UP:
+        business-function: VN Billpay Payments
+        confirmation.enabled: true
+        validation:
+          rules:
+            - non-zero-transaction
+            - amount-less-than-available-balance
+      INTERNET_BILL:
+        business-function: VN Billpay Payments
+        confirmation.enabled: true
+        validation:
+          rules:
+            - non-zero-transaction
+            - amount-less-than-available-balance
+      TELEVISION_BILL:
+        business-function: VN Billpay Payments
+        confirmation.enabled: true
+        validation:
+          rules:
+            - non-zero-transaction
+            - amount-less-than-available-balance
+      POCKET_TRANSFER:
+        business-function: A2A Transfer
+        validation:
+          rules:
+            - valid-originator-account-scheme-name-id
+            - valid-originator-account-type-pocket
+            - valid-counterparty-account-scheme-name-id
+            - valid-counterparty-account-type-pocket
+            - non-zero-transaction
+      TD_TERMINATE:
+        business-function: A2A Transfer
+        confirmation.enabled: false
+      TD_WITHDRAWAL_PARTIAL:
+        business-function: A2A Transfer
+        confirmation.enabled: true
+        validation:
+          rules:
+            - non-zero-transaction
+            - amount-less-than-available-balance
+      CARDLESS_WITHDRAW:
+        business-function: A2A Transfer
+        confirmation.enabled: true
+        validation:
+          rules:
+            - non-zero-transaction
+            - min-cardless-withdraw-amount
+            - max-cardless-withdraw-amount
+            - amount-less-than-available-balance
+      CANCEL_WITHDRAW:
+        business-function: A2A Transfer
+        confirmation.enabled: true
+      OPEN_CREDIT_CARD:
+        business-function: A2A Transfer
+        confirmation.enabled: true
+      PAY_CREDIT_CARD:
+        business-function: A2A Transfer
+        confirmation.enabled: false
+        validation:
+          rules:
+            - non-zero-transaction
+            - amount-less-than-available-balance
+      CREATE_AUTO_BILL_PAY:
+        business-function: A2A Transfer
+        confirmation.enabled: false
+      BILL_PAYMENTS:
+        business-function: A2A Transfer
+        confirmation.enabled: false
+      CARD_REPAYMENTS:
+        business-function: A2A Transfer
+        confirmation.enabled: false
+        export.enabled: true
+        validation:
+          rules:
+            - non-zero-transaction
+            - amount-less-than-available-balance
+  api:
+    extensions:
+      classes:
+        com.backbase.dbs.presentation.paymentorder.rest.spec.v2.paymentorders.InitiatePaymentOrder: additional-data
+        com.backbase.dbs.payment.persistence.domain.model.order.PaymentOrder: additional-data
+        com.backbase.dbs.paymentorder.persistence.spec.v2.paymentorders.PersistenceCreatePaymentRequest: additional-data
+        com.backbase.dbs.paymentorder.paymentorders.api.client.v2.model.PaymentOrdersPost: additional-data
+        com.backbase.dbs.paymentorder.paymentorders.api.client.v2.model.PaymentOrdersValidatePost: additional-data
+      property-sets:
+        additional-data:
+          properties:
+            - property-name: providerCode
+              type: string
+            - property-name: initiatedFromBank
+              type: string
+            - property-name: transactionRemarks
+              type: string
+            - property-name: originatorBankBranchCode
+              type: string
+            - property-name: customerId
+              type: string
+            - property-name: user_name
+              type: string
+            - property-name: depositAccountName
+              type: string
+            - property-name: periodType
+              type: string
+            - property-name: productId
+              type: string
+            - property-name: toPeriod
+              type: string
+            - property-name: accountClosureId
+              type: string
+            - property-name: maturityMethod
+              type: string
+            - property-name: loanTermFrequency
+              type: string
+            - property-name: loanTermFrequencyType
+              type: string
+            - property-name: transactionID
+              type: string
+            - property-name: identityNumber
+              type: string
+            - property-name: receiveAddress
+              type: string
+            - property-name: holderName
+              type: string
+            - property-name: cardName
+              type: string
+            - property-name: pmtType
+              type: string
+            - property-name: bankCode
+              type: string
+            - property-name: branchCode
+              type: string
+            - property-name: branchName
+              type: string
+            - property-name: provinceName
+              type: string
+            - property-name: interestRate
+              type: string
+            - property-name: id
+              type: string
+            - property-name: providerId
+              type: string
+            - property-name: serviceCode
+              type: string
+            - property-name: serviceTypeCode
+              type: string
+            - property-name: customerCode
+              type: string
+            - property-name: paymentSetting
+              type: string
+            - property-name: amountLimit
+              type: string
+            - property-name: recurringPeriod
+              type: string
+            - property-name: finishDate
+              type: string
+            - property-name: providers
+              type: string
+            - property-name: bills
+              type: string
+            - property-name: productId
+              type: string
+            - property-name: channel
+              type: string
+logging:
+  level:
+    com.backbase: DEBUG       
